@@ -1,0 +1,41 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Serviço da API FastAPI
+  api:
+    # Constrói a imagem a partir do Dockerfile na pasta atual
+    build: .
+    # Mapeia a porta 8000 do contêiner para a porta 8000 da máquina host
+    ports:
+      - "8000:8000"
+    # Mapeia o código local (pasta 'app') para dentro do contêiner
+    # Isso permite o hot-reloading: mudanças no código são refletidas sem precisar reconstruir a imagem
+    volumes:
+      - ./app:/app
+    # Nome do contêiner para facilitar a identificação
+    container_name: fastapi_user_api
+    # Define a ordem de inicialização: a API só inicia depois que o serviço 'mongo' estiver pronto
+    depends_on:
+      - mongo
+    # Define o ambiente da aplicação
+    environment:
+      - MONGO_DETAILS=mongodb://mongo:27017
+
+  # Serviço do Banco de Dados MongoDB
+  mongo:
+    # Usa a imagem oficial do MongoDB
+    image: mongo:latest
+    # Mapeia a porta 27017 do contêiner para a 27017 da máquina host (opcional, bom para debug)
+    ports:
+      - "27017:27017"
+    # Monta um volume para persistir os dados do MongoDB
+    # Mesmo que o contêiner seja removido, os dados em 'mongo-data' permanecerão
+    volumes:
+      - mongo-data:/data/db
+    # Nome do contêiner
+    container_name: mongodb_users
+
+volumes:
+  # Declara o volume nomeado que será usado pelo serviço do MongoDB
+  mongo-data:
